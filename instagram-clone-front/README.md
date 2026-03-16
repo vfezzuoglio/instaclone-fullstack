@@ -16,6 +16,45 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
+## Connect to InstaClone API
+
+The app now uses the ASP.NET backend instead of local mock data.
+
+1. Start the backend API:
+
+   ```bash
+   cd ../instagram-clone/InstaClone.Api
+   dotnet run
+   ```
+
+   The API runs on `http://localhost:5042` by default.
+
+2. Configure the frontend API base URL:
+
+   Create a `.env` file in this folder and set:
+
+   ```bash
+   EXPO_PUBLIC_API_BASE_URL=http://localhost:5042
+   ```
+
+   Notes:
+   - Android emulator usually needs `http://10.0.2.2:5042`
+   - Physical device should use your computer's LAN IP, like `http://192.168.1.20:5042`
+
+3. Start the frontend:
+
+   ```bash
+   npm start
+   ```
+
+Implemented API calls:
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/posts/feed`
+- `POST /api/posts`
+- `POST /api/posts/{postId}/like`
+- `DELETE /api/posts/{postId}/like`
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)

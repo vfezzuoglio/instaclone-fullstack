@@ -11,16 +11,20 @@ export default function SignupScreen() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const onSignup = () => {
-    const ok = signup({ username, email, password });
+  const onSignup = async () => {
+    if (submitting) return;
 
-    if (!ok) {
-      Alert.alert("Signup failed", "Please fill out all fields.");
-      return;
+    setSubmitting(true);
+    try {
+      await signup({ username, email, password });
+      router.replace("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("Signup failed", error.message || "Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    router.replace("/(tabs)/home");
   };
 
   return (
@@ -53,7 +57,10 @@ export default function SignupScreen() {
           secureTextEntry
         />
 
-        <AppButton title="Sign Up" onPress={onSignup} />
+        <AppButton
+          title={submitting ? "Creating account..." : "Sign Up"}
+          onPress={onSignup}
+        />
 
         <Text style={{ textAlign: "center", color: "#6B7280" }}>
           Already have an account?{" "}
