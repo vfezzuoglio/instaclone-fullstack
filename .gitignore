@@ -1,0 +1,81 @@
+# ----------------------------
+# OS / Editor
+# ----------------------------
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+
+# ----------------------------
+# Node / Expo / React Native
+# ----------------------------
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# TypeScript
+*.tsbuildinfo
+
+# Metro / Expo
+.metro-health-check*
+
+# ----------------------------
+# .NET / ASP.NET Core
+# ----------------------------
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+
+# Rider / VS
+*.sln.docstates
+
+# Logs
+*.log
+
+# App settings / secrets
+appsettings.Development.json
+secrets.json
+
+# EF / local db artifacts
+*.db
+*.db-shm
+*.db-wal
+
+# ----------------------------
+# Test / coverage
+# ----------------------------
+coverage/
+*.coverage
+*.coveragexml
+
+# ----------------------------
+# Build artifacts
+# ----------------------------
+build/
+Build/
+publish/
+
+# ----------------------------
+# Misc
+# ----------------------------
+tmp/
+temp/
+*.tmp
