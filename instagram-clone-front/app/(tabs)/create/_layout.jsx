@@ -1,14 +1,27 @@
-import React from 'react';
+import { Slot } from "expo-router";
+import { Text, View } from "react-native";
 
-export default function CreateLayout({ children }) {
+export default function CreateLayout() {
     return (
-        <div style={{ maxWidth: 600, margin: '0 auto', padding: 24 }}>
-            <header style={{ borderBottom: '1px solid #dbdbdb', paddingBottom: 16, marginBottom: 24 }}>
-                <h2>Create Post</h2>
-            </header>
-            <main>
-                {children}
-            </main>
-        </div>
+        <View style={{ flex: 1, maxWidth: 600, width: "100%", alignSelf: "center" }}>
+            <View
+                style={{
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#DBDBDB",
+                    paddingHorizontal: 24,
+                    paddingTop: 24,
+                    paddingBottom: 16,
+                    marginBottom: 8,
+                }}
+            >
+                <Text style={{ fontSize: 24, fontWeight: "800", color: "#111827" }}>
+                    Create Post
+                </Text>
+            </View>
+
+            <View style={{ flex: 1 }}>
+                <Slot />
+            </View>
+        </View>
     );
 }

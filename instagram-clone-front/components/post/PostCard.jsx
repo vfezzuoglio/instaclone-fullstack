@@ -58,8 +58,8 @@ export default function PostCard({
 
       <Image
         source={{ uri: post.image }}
-        style={{ width: "100%", height: 320 }}
-        resizeMode="cover"
+        style={{ width: "100%", height: 320, backgroundColor: "#F3F4F6" }}
+        resizeMode="contain"
       />
 
       <View style={{ padding: 12, gap: 10 }}>

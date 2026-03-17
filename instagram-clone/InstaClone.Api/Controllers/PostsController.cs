@@ -37,7 +37,23 @@ public class PostsController : ControllerBase
         _db.Posts.Add(post);
         await _db.SaveChangesAsync();
 
-        return Ok(post);
+        var username = await _db.Users
+            .Where(u => u.Id == userId.Value)
+            .Select(u => u.Username)
+            .FirstAsync();
+
+        return Ok(new
+        {
+            post.Id,
+            post.ImageUrl,
+            post.Caption,
+            post.CreatedAt,
+            post.UserId,
+            Username = username,
+            LikesCount = 0,
+            LikedByMe = false,
+            CommentsCount = 0
+        });
     }
 
     [Authorize]
