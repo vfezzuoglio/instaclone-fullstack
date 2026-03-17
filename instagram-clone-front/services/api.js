@@ -1,9 +1,30 @@
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
 const envBaseUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-const defaultHost = Platform.OS === "android" ? "10.0.2.2" : "localhost";
 
-export const API_BASE_URL = envBaseUrl || `http://${defaultHost}:5042`;
+function isLocalhostUrl(url) {
+  if (!url) return false;
+  return url.includes("localhost") || url.includes("127.0.0.1");
+}
+
+function resolveDefaultHost() {
+  const hostUri = Constants.expoConfig?.hostUri;
+  const hostFromExpo = hostUri?.split(":")?.[0];
+
+  if (hostFromExpo) {
+    return hostFromExpo;
+  }
+
+  return Platform.OS === "android" ? "10.0.2.2" : "localhost";
+}
+
+const defaultHost = resolveDefaultHost();
+const shouldUseEnvBaseUrl = !(Platform.OS !== "web" && isLocalhostUrl(envBaseUrl));
+
+export const API_BASE_URL = shouldUseEnvBaseUrl && envBaseUrl
+  ? envBaseUrl
+  : `http://${defaultHost}:5042`;
 
 export function buildApiUrl(path) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;

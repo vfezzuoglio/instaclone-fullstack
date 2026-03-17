@@ -4,7 +4,7 @@ export default function TabsLayout() {
   return (
     <Tabs screenOptions={{ headerTitleAlign: "center" }}>
       <Tabs.Screen
-        name="home"
+        name="home/index"
         options={{
           title: "Home",
           tabBarLabel: "Home",
@@ -18,7 +18,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="profile/index"
         options={{
           title: "Profile",
           tabBarLabel: "Profile",
