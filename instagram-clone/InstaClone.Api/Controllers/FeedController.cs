@@ -1,8 +1,8 @@
 using InstaClone.Api.Data;
+using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace InstaClone.Api.Controllers;
 
@@ -17,16 +17,15 @@ public class FeedController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        var meStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-        if (meStr is null) return Unauthorized();
-        var me = long.Parse(meStr);
+        var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
+        if (me is null) return Unauthorized();
 
         var followingIds = _db.Follows
-            .Where(f => f.FollowerId == me)
+            .Where(f => f.FollowerId == me.Value)
             .Select(f => f.FollowingId);
 
         var posts = await _db.Posts
-            .Where(p => p.UserId == me || followingIds.Contains(p.UserId))
+            .Where(p => p.UserId == me.Value || followingIds.Contains(p.UserId))
             .Include(p => p.User)
             .Include(p => p.Likes)
             .OrderByDescending(p => p.CreatedAt)

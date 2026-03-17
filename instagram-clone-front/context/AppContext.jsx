@@ -1,5 +1,13 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
 import { apiRequest } from "../services/api";
+import { auth } from "../services/firebase";
 
 const AppContext = createContext(null);
 
@@ -54,6 +62,32 @@ export function AppProvider({ children }) {
   const [posts, setPosts] = useState([]);
   const [commentsByPost, setCommentsByPost] = useState({});
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        setUser(null);
+        setToken(null);
+        setPosts([]);
+        setCommentsByPost({});
+        return;
+      }
+
+      const authToken = await firebaseUser.getIdToken();
+      const derivedUsername = firebaseUser.displayName || firebaseUser.email?.split("@")[0] || "user";
+
+      setToken(authToken);
+      setUser({
+        id: firebaseUser.uid,
+        username: derivedUsername,
+        email: firebaseUser.email || "",
+        bio: "",
+        avatar: avatarForUsername(derivedUsername),
+      });
+    });
+
+    return unsubscribe;
+  }, []);
+
   const mapComment = (apiComment) => ({
     id: String(apiComment.id),
     text: apiComment.text || "",
@@ -100,28 +134,17 @@ export function AppProvider({ children }) {
       throw new Error("Please enter email and password.");
     }
 
-    const auth = await apiRequest("/api/auth/login", {
-      method: "POST",
-      body: {
-        email: trimmedEmail,
-        password: trimmedPassword,
-      },
-    });
+    const credential = await signInWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
+    const authToken = await credential.user.getIdToken();
 
-    if (!auth?.token) {
-      throw new Error("Login failed.");
-    }
-
-    setToken(auth.token);
     setUser({
-      id: trimmedEmail,
-      username: trimmedEmail.split("@")[0],
+      id: credential.user.uid,
+      username: credential.user.displayName || trimmedEmail.split("@")[0],
       email: trimmedEmail,
       bio: "",
-      avatar: avatarForUsername(trimmedEmail.split("@")[0]),
+      avatar: avatarForUsername(credential.user.displayName || trimmedEmail.split("@")[0]),
     });
-
-    await fetchFeed(auth.token);
+    setToken(authToken);
   };
 
   const signup = async ({ username, email, password }) => {
@@ -133,32 +156,22 @@ export function AppProvider({ children }) {
       throw new Error("Please fill out all fields.");
     }
 
-    const auth = await apiRequest("/api/auth/register", {
-      method: "POST",
-      body: {
-        username: trimmedUsername,
-        email: trimmedEmail,
-        password: trimmedPassword,
-      },
-    });
+    const credential = await createUserWithEmailAndPassword(auth, trimmedEmail, trimmedPassword);
+    await updateProfile(credential.user, { displayName: trimmedUsername });
+    const authToken = await credential.user.getIdToken(true);
 
-    if (!auth?.token) {
-      throw new Error("Signup failed.");
-    }
-
-    setToken(auth.token);
     setUser({
-      id: trimmedEmail,
+      id: credential.user.uid,
       username: trimmedUsername,
       email: trimmedEmail,
       bio: "",
       avatar: avatarForUsername(trimmedUsername),
     });
-
-    await fetchFeed(auth.token);
+    setToken(authToken);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await signOut(auth);
     setUser(null);
     setToken(null);
     setPosts([]);
