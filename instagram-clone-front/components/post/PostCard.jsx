@@ -7,6 +7,7 @@ export default function PostCard({
   onToggleLike,
   onLoadComments,
   onAddComment,
+  onDeletePost,
 }) {
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -43,17 +44,35 @@ export default function PostCard({
         style={{
           flexDirection: "row",
           alignItems: "center",
+          justifyContent: "space-between",
           gap: 10,
           padding: 12,
         }}
       >
-        <Image
-          source={{ uri: post.user.avatar }}
-          style={{ width: 38, height: 38, borderRadius: 19 }}
-        />
-        <Text style={{ fontWeight: "700", fontSize: 15 }}>
-          {post.user.username}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <Image
+            source={{ uri: post.user.avatar }}
+            style={{ width: 38, height: 38, borderRadius: 19 }}
+          />
+          <Text style={{ fontWeight: "700", fontSize: 15 }}>
+            {post.user.username}
+          </Text>
+        </View>
+
+        {post.canDelete ? (
+          <Pressable
+            onPress={() => onDeletePost?.(post.id)}
+            style={{
+              borderWidth: 1,
+              borderColor: "#FCA5A5",
+              borderRadius: 999,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+            }}
+          >
+            <Text style={{ color: "#B91C1C", fontWeight: "700" }}>Delete</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       <Image

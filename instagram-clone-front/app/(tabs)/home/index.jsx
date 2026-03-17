@@ -9,6 +9,7 @@ export default function HomeScreen() {
     posts,
     commentsByPost,
     toggleLike,
+    deletePost,
     addComment,
     fetchComments,
     fetchFeed,
@@ -58,6 +59,26 @@ export default function HomeScreen() {
     }
   }, [addComment]);
 
+  const onDeletePost = useCallback((postId) => {
+    Alert.alert("Delete post", "Are you sure you want to delete this post?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deletePost(postId);
+          } catch (error) {
+            Alert.alert("Delete failed", error.message || "Please try again.");
+          }
+        },
+      },
+    ]);
+  }, [deletePost]);
+
   return (
     <ScreenWrapper padded={false}>
       <FlatList
@@ -72,6 +93,7 @@ export default function HomeScreen() {
             onToggleLike={onToggleLike}
             onLoadComments={onLoadComments}
             onAddComment={onAddComment}
+            onDeletePost={onDeletePost}
           />
         )}
       />

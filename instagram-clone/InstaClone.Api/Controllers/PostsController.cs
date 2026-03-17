@@ -52,7 +52,8 @@ public class PostsController : ControllerBase
             Username = username,
             LikesCount = 0,
             LikedByMe = false,
-            CommentsCount = 0
+            CommentsCount = 0,
+            CanDelete = true
         });
     }
 
@@ -75,15 +76,43 @@ public class PostsController : ControllerBase
                 p.ImageUrl,
                 p.Caption,
                 p.CreatedAt,
+                p.UserId,
                 Username = p.User!.Username,
 
                 LikesCount = p.Likes.Count,
                 LikedByMe = p.Likes.Any(l => l.UserId == me.Value),
 
-                CommentsCount = p.Comments.Count
+                CommentsCount = p.Comments.Count,
+                CanDelete = p.UserId == me.Value
             })
         .ToListAsync();
 
         return Ok(posts);
+    }
+
+    [Authorize]
+    [HttpDelete("{id:long}")]
+    public async Task<IActionResult> Delete(long id)
+    {
+        var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
+        if (me is null)
+            return Unauthorized();
+
+        var post = await _db.Posts.FirstOrDefaultAsync(p => p.Id == id);
+        if (post is null)
+            return NotFound("Post not found.");
+
+        if (post.UserId != me.Value)
+            return Forbid();
+
+        var likes = _db.Likes.Where(l => l.PostId == id);
+        var comments = _db.Comments.Where(c => c.PostId == id);
+
+        _db.Likes.RemoveRange(likes);
+        _db.Comments.RemoveRange(comments);
+        _db.Posts.Remove(post);
+
+        await _db.SaveChangesAsync();
+        return Ok(new { deleted = true });
     }
 }

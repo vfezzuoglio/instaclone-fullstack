@@ -52,6 +52,7 @@ function mapPost(apiPost) {
     likesCount: apiPost.likesCount ?? 0,
     commentsCount: apiPost.commentsCount ?? 0,
     likedByMe: apiPost.likedByMe ?? false,
+    canDelete: apiPost.canDelete ?? false,
     createdAt: formatCreatedAt(apiPost.createdAt),
   };
 }
@@ -264,6 +265,24 @@ export function AppProvider({ children }) {
     await fetchFeed(token);
   };
 
+  const deletePost = async (postId) => {
+    if (!token) {
+      throw new Error("Please login again.");
+    }
+
+    await apiRequest(`/api/posts/${postId}`, {
+      method: "DELETE",
+      token,
+    });
+
+    setPosts((prev) => prev.filter((item) => item.id !== postId));
+    setCommentsByPost((prev) => {
+      const next = { ...prev };
+      delete next[postId];
+      return next;
+    });
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -277,6 +296,7 @@ export function AppProvider({ children }) {
       toggleLike,
       addComment,
       createPost,
+      deletePost,
     }),
     [user, posts, commentsByPost, fetchFeed, fetchComments]
   );
