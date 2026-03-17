@@ -10,16 +10,20 @@ export default function LoginScreen() {
   const { login } = useApp();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const onLogin = () => {
-    const ok = login({ email, password });
+  const onLogin = async () => {
+    if (submitting) return;
 
-    if (!ok) {
-      Alert.alert("Login failed", "Please enter email and password.");
-      return;
+    setSubmitting(true);
+    try {
+      await login({ email, password });
+      router.replace("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("Login failed", error.message || "Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    router.replace("/(tabs)/home");
   };
 
   return (
@@ -44,10 +48,10 @@ export default function LoginScreen() {
           secureTextEntry
         />
 
-        <AppButton title="Login" onPress={onLogin} />
+        <AppButton title={submitting ? "Logging in..." : "Login"} onPress={onLogin} />
 
         <Text style={{ textAlign: "center", color: "#6B7280" }}>
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/(auth)/signup" style={{ color: "#111827", fontWeight: "700" }}>
             Sign up
           </Link>

@@ -1,10 +1,10 @@
 using InstaClone.Api.Data;
 using InstaClone.Api.Dtos;
 using InstaClone.Api.Models;
+using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace InstaClone.Api.Controllers;
 
@@ -49,14 +49,9 @@ public class CommentsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(long postId, CreateCommentRequest req)
     {
-        var userIdStr =
-            User.FindFirstValue(ClaimTypes.NameIdentifier) ??
-            User.FindFirstValue("sub");
-
-        if (userIdStr is null)
+        var userId = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
+        if (userId is null)
             return Unauthorized();
-
-        var userId = long.Parse(userIdStr);
 
         var exists = await _db.Posts.AnyAsync(p => p.Id == postId);
         if (!exists)
@@ -71,7 +66,7 @@ public class CommentsController : ControllerBase
         var comment = new Comment
         {
             PostId = postId,
-            UserId = userId,
+            UserId = userId.Value,
             Text = text
         };
 
@@ -80,7 +75,7 @@ public class CommentsController : ControllerBase
 
         // Return username too so the client can render without re-fetching
         var username = await _db.Users
-            .Where(u => u.Id == userId)
+            .Where(u => u.Id == userId.Value)
             .Select(u => u.Username)
             .FirstAsync();
 

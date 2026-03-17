@@ -1,9 +1,9 @@
 using InstaClone.Api.Data;
 using InstaClone.Api.Models;
+using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace InstaClone.Api.Controllers;
 
@@ -18,19 +18,18 @@ public class FollowsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> FollowUser(long userId)
     {
-        var meStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-        if (meStr is null) return Unauthorized();
-        var me = long.Parse(meStr);
+        var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
+        if (me is null) return Unauthorized();
 
-        if (me == userId) return BadRequest("You cannot follow yourself.");
+        if (me.Value == userId) return BadRequest("You cannot follow yourself.");
 
         if (!await _db.Users.AnyAsync(u => u.Id == userId))
             return NotFound("User not found.");
 
-        var exists = await _db.Follows.AnyAsync(f => f.FollowerId == me && f.FollowingId == userId);
+        var exists = await _db.Follows.AnyAsync(f => f.FollowerId == me.Value && f.FollowingId == userId);
         if (exists) return Ok(new { following = true });
 
-        _db.Follows.Add(new Follow { FollowerId = me, FollowingId = userId });
+        _db.Follows.Add(new Follow { FollowerId = me.Value, FollowingId = userId });
         await _db.SaveChangesAsync();
 
         return Ok(new { following = true });
@@ -40,11 +39,10 @@ public class FollowsController : ControllerBase
     [HttpDelete]
     public async Task<IActionResult> UnfollowUser(long userId)
     {
-        var meStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-        if (meStr is null) return Unauthorized();
-        var me = long.Parse(meStr);
+        var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
+        if (me is null) return Unauthorized();
 
-        var row = await _db.Follows.FirstOrDefaultAsync(f => f.FollowerId == me && f.FollowingId == userId);
+        var row = await _db.Follows.FirstOrDefaultAsync(f => f.FollowerId == me.Value && f.FollowingId == userId);
         if (row is null) return Ok(new { following = false });
 
         _db.Follows.Remove(row);

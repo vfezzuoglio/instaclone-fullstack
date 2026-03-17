@@ -33,6 +33,24 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        var firebaseProjectId = builder.Configuration["Firebase:ProjectId"];
+
+        if (!string.IsNullOrWhiteSpace(firebaseProjectId))
+        {
+            options.Authority = $"https://securetoken.google.com/{firebaseProjectId}";
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidIssuer = $"https://securetoken.google.com/{firebaseProjectId}",
+                ValidateAudience = true,
+                ValidAudience = firebaseProjectId,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true
+            };
+
+            return;
+        }
+
         var jwt = builder.Configuration.GetSection("Jwt");
         options.TokenValidationParameters = new TokenValidationParameters
         {

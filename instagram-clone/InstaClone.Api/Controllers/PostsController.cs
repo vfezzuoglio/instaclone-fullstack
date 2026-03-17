@@ -1,10 +1,10 @@
 using InstaClone.Api.Data;
 using InstaClone.Api.Dtos;
 using InstaClone.Api.Models;
+using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace InstaClone.Api.Controllers;
 
@@ -23,15 +23,13 @@ public class PostsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreatePostRequest req)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? User.FindFirstValue("sub");
-
+        var userId = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
         if (userId is null)
             return Unauthorized();
 
         var post = new Post
         {
-            UserId = long.Parse(userId),
+            UserId = userId.Value,
             ImageUrl = req.ImageUrl,
             Caption = req.Caption
         };
@@ -39,20 +37,32 @@ public class PostsController : ControllerBase
         _db.Posts.Add(post);
         await _db.SaveChangesAsync();
 
-        return Ok(post);
+        var username = await _db.Users
+            .Where(u => u.Id == userId.Value)
+            .Select(u => u.Username)
+            .FirstAsync();
+
+        return Ok(new
+        {
+            post.Id,
+            post.ImageUrl,
+            post.Caption,
+            post.CreatedAt,
+            post.UserId,
+            Username = username,
+            LikesCount = 0,
+            LikedByMe = false,
+            CommentsCount = 0
+        });
     }
 
     [Authorize]
     [HttpGet("feed")]
     public async Task<IActionResult> Feed()
     {
-        var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                    ?? User.FindFirstValue("sub");
-
-        if (userIdStr is null)
+        var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
+        if (me is null)
             return Unauthorized();
-
-        var me = long.Parse(userIdStr);
 
         var posts = await _db.Posts
             .Include(p => p.User)
@@ -68,7 +78,7 @@ public class PostsController : ControllerBase
                 Username = p.User!.Username,
 
                 LikesCount = p.Likes.Count,
-                LikedByMe = p.Likes.Any(l => l.UserId == me),
+                LikedByMe = p.Likes.Any(l => l.UserId == me.Value),
 
                 CommentsCount = p.Comments.Count
             })

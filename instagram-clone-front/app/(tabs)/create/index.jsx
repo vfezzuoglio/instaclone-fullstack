@@ -10,18 +10,22 @@ export default function CreateScreen() {
   const { createPost } = useApp();
   const [image, setImage] = useState("");
   const [caption, setCaption] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const onCreate = () => {
-    const ok = createPost({ image, caption });
+  const onCreate = async () => {
+    if (submitting) return;
 
-    if (!ok) {
-      Alert.alert("Post failed", "Please add an image URL.");
-      return;
+    setSubmitting(true);
+    try {
+      await createPost({ image, caption });
+      setImage("");
+      setCaption("");
+      router.replace("/(tabs)/home");
+    } catch (error) {
+      Alert.alert("Post failed", error.message || "Please try again.");
+    } finally {
+      setSubmitting(false);
     }
-
-    setImage("");
-    setCaption("");
-    router.replace("/(tabs)/home");
   };
 
   return (
@@ -43,7 +47,10 @@ export default function CreateScreen() {
           multiline
         />
 
-        <AppButton title="Create Post" onPress={onCreate} />
+        <AppButton
+          title={submitting ? "Creating..." : "Create Post"}
+          onPress={onCreate}
+        />
       </View>
     </ScreenWrapper>
   );
