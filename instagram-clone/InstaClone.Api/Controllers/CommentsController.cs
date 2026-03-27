@@ -3,6 +3,7 @@ using InstaClone.Api.Dtos;
 using InstaClone.Api.Models;
 using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ public class CommentsController : ControllerBase
 
     // Public: list comments for a post
     [HttpGet]
+    [EnableRateLimiting("read")]
     public async Task<IActionResult> List(long postId)
     {
         var exists = await _db.Posts.AnyAsync(p => p.Id == postId);
@@ -47,6 +49,7 @@ public class CommentsController : ControllerBase
     // Protected: add a comment
     [Authorize]
     [HttpPost]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Create(long postId, CreateCommentRequest req)
     {
         var userId = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);

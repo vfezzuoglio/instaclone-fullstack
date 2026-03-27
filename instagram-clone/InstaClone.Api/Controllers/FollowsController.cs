@@ -2,6 +2,7 @@ using InstaClone.Api.Data;
 using InstaClone.Api.Models;
 using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ public class FollowsController : ControllerBase
 
     [Authorize]
     [HttpPost]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> FollowUser(long userId)
     {
         var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
@@ -37,6 +39,7 @@ public class FollowsController : ControllerBase
 
     [Authorize]
     [HttpDelete]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> UnfollowUser(long userId)
     {
         var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);

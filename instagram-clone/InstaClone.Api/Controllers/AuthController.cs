@@ -1,6 +1,7 @@
 using InstaClone.Api.Data;
 using InstaClone.Api.Dtos;
 using InstaClone.Api.Models;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -24,6 +25,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest req)
     {
         var usernameTaken = await _db.Users.AnyAsync(u => u.Username == req.Username);
@@ -47,6 +49,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting("auth")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest req)
     {
         var email = req.Email.Trim().ToLowerInvariant();

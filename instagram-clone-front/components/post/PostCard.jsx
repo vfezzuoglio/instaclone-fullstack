@@ -8,6 +8,7 @@ export default function PostCard({
   onLoadComments,
   onAddComment,
   onDeletePost,
+  onPressUser,
 }) {
   const [newComment, setNewComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -49,7 +50,10 @@ export default function PostCard({
           padding: 12,
         }}
       >
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Pressable
+          onPress={() => onPressUser?.(post.user.username, post.canDelete)}
+          style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+        >
           <Image
             source={{ uri: post.user.avatar }}
             style={{ width: 38, height: 38, borderRadius: 19 }}
@@ -57,7 +61,7 @@ export default function PostCard({
           <Text style={{ fontWeight: "700", fontSize: 15 }}>
             {post.user.username}
           </Text>
-        </View>
+        </Pressable>
 
         {post.canDelete ? (
           <Pressable

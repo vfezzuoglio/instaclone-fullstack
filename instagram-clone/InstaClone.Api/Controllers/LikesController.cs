@@ -2,6 +2,7 @@ using InstaClone.Api.Data;
 using InstaClone.Api.Models;
 using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,6 +18,7 @@ public class LikesController : ControllerBase
 
     [Authorize]
     [HttpPost]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Like(long postId)
     {
         var userId = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
@@ -36,6 +38,7 @@ public class LikesController : ControllerBase
 
     [Authorize]
     [HttpDelete]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Unlike(long postId)
     {
         var userId = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);

@@ -8,9 +8,23 @@ function isLocalhostUrl(url) {
   return url.includes("localhost") || url.includes("127.0.0.1");
 }
 
+function hostFromUri(value) {
+  if (!value || typeof value !== "string") return null;
+  return value.split(":")?.[0] || null;
+}
+
 function resolveDefaultHost() {
-  const hostUri = Constants.expoConfig?.hostUri;
-  const hostFromExpo = hostUri?.split(":")?.[0];
+  const hostCandidates = [
+    Constants.expoConfig?.hostUri,
+    Constants.expoGoConfig?.debuggerHost,
+    Constants.manifest2?.extra?.expoGo?.debuggerHost,
+    Constants.manifest?.debuggerHost,
+    Constants.manifest?.hostUri,
+  ];
+
+  const hostFromExpo = hostCandidates
+    .map((item) => hostFromUri(item))
+    .find(Boolean);
 
   if (hostFromExpo) {
     return hostFromExpo;

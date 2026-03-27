@@ -3,6 +3,7 @@ using InstaClone.Api.Dtos;
 using InstaClone.Api.Models;
 using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ public class PostsController : ControllerBase
 
     [Authorize]
     [HttpPost]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Create(CreatePostRequest req)
     {
         var userId = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
@@ -59,6 +61,7 @@ public class PostsController : ControllerBase
 
     [Authorize]
     [HttpGet("feed")]
+    [EnableRateLimiting("read")]
     public async Task<IActionResult> Feed()
     {
         var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);
@@ -92,6 +95,7 @@ public class PostsController : ControllerBase
 
     [Authorize]
     [HttpDelete("{id:long}")]
+    [EnableRateLimiting("write")]
     public async Task<IActionResult> Delete(long id)
     {
         var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);

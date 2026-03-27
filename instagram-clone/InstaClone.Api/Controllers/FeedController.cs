@@ -1,6 +1,7 @@
 using InstaClone.Api.Data;
 using InstaClone.Api.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,7 @@ public class FeedController : ControllerBase
 
     [Authorize]
     [HttpGet]
+    [EnableRateLimiting("read")]
     public async Task<IActionResult> Get()
     {
         var me = await CurrentUserResolver.GetLocalUserIdAsync(_db, User);

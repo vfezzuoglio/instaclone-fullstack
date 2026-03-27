@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Alert, FlatList, RefreshControl } from "react-native";
+import { router } from "expo-router";
 import ScreenWrapper from "../../../components/ui/ScreenWrapper";
 import PostCard from "../../../components/post/PostCard";
 import { useApp } from "../../../context/AppContext";
@@ -79,6 +80,20 @@ export default function HomeScreen() {
     ]);
   }, [deletePost]);
 
+  const onPressUser = useCallback((username, isMe) => {
+    if (!username) return;
+
+    if (isMe) {
+      router.push("/(tabs)/profile");
+      return;
+    }
+
+    router.push({
+      pathname: "/users/[username]",
+      params: { username },
+    });
+  }, []);
+
   return (
     <ScreenWrapper padded={false}>
       <FlatList
@@ -94,6 +109,7 @@ export default function HomeScreen() {
             onLoadComments={onLoadComments}
             onAddComment={onAddComment}
             onDeletePost={onDeletePost}
+            onPressUser={onPressUser}
           />
         )}
       />
