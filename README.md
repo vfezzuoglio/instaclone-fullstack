@@ -108,6 +108,70 @@ npm run web
 3. Run Expo app from `instagram-clone-front`.
 4. Open Expo Go/emulator/browser and test login/feed/create post flows.
 
+## Docker Setup (Recommended for Azure)
+
+Containerization is a good fit for your backend if you plan to deploy to Azure soon.
+
+### Files added
+
+- `instagram-clone/InstaClone.Api/Dockerfile` (multi-stage .NET 9 image)
+- `instagram-clone/docker-compose.yml` (API + MySQL local stack)
+- `instagram-clone/.dockerignore`
+
+### Run with Docker Compose
+
+From `instagram-clone`:
+
+```bash
+docker compose up --build -d
+```
+
+API will be available at:
+- `http://localhost:5042`
+
+MySQL runs inside Docker and is reachable by the API using service host `db` on port `3306`.
+
+By default, MySQL is not published to your Windows host to avoid conflicts with any local MySQL install already using port `3306`.
+
+If you need host access (for a DB GUI), temporarily publish another host port in `docker-compose.yml`, for example:
+
+```yaml
+ports:
+  - "3307:3306"
+```
+
+To stop:
+
+```bash
+docker compose down
+```
+
+To stop and remove DB volume data:
+
+```bash
+docker compose down -v
+```
+
+### EF Core migrations when containerized
+
+Apply migrations before first use (or after model changes):
+
+```bash
+cd instagram-clone/InstaClone.Api
+dotnet ef database update
+```
+
+The API container uses `ConnectionStrings__Default` so it connects to the `db` service inside Compose.
+
+### Azure path
+
+This setup is compatible with an Azure container workflow.
+
+- Build and push image to Azure Container Registry (ACR).
+- Deploy to Azure App Service for Containers or Azure Container Apps.
+- Set environment variables in Azure (especially `ConnectionStrings__Default`, `Firebase__ProjectId`, and any JWT fallback settings if needed).
+- Use Azure Database for MySQL in production instead of the local Compose MySQL container.
+
 ## Troubleshooting
 
 - 401 Unauthorized from API:

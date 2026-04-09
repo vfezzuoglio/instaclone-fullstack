@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: instaclone-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: instaclone
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uappuser", "-papppassword"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: InstaClone.Api/Dockerfile
+    container_name: instaclone-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__Default: server=db;port=3306;database=instaclone;user=appuser;password=apppassword
+      Firebase__ProjectId: instaclone-617e2
+    ports:
+      - "5042:8080"
+
+volumes:
+  mysql_data:
