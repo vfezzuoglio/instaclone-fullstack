@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, Platform, RefreshControl } from "react-native";
+import { Alert, FlatList, Platform, RefreshControl, View } from "react-native";
 import { router } from "expo-router";
 import ScreenWrapper from "../../../components/ui/ScreenWrapper";
 import PostCard from "../../../components/post/PostCard";
@@ -110,23 +110,32 @@ export default function HomeScreen() {
 
   return (
     <ScreenWrapper padded={false}>
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadFeed} />}
-        renderItem={({ item }) => (
-          <PostCard
-            post={item}
-            comments={commentsByPost[item.id] || []}
-            onToggleLike={onToggleLike}
-            onLoadComments={onLoadComments}
-            onAddComment={onAddComment}
-            onDeletePost={onDeletePost}
-            onPressUser={onPressUser}
-          />
-        )}
-      />
+      <View
+        style={Platform.OS === "web" ? {
+          maxWidth: 600,
+          marginHorizontal: "auto",
+          width: "100%",
+          flex: 1,
+        } : { flex: 1 }}
+      >
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={{ padding: 16 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={loadFeed} />}
+          renderItem={({ item }) => (
+            <PostCard
+              post={item}
+              comments={commentsByPost[item.id] || []}
+              onToggleLike={onToggleLike}
+              onLoadComments={onLoadComments}
+              onAddComment={onAddComment}
+              onDeletePost={onDeletePost}
+              onPressUser={onPressUser}
+            />
+          )}
+        />
+      </View>
     </ScreenWrapper>
   );
 }

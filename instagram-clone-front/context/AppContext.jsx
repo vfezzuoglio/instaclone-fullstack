@@ -68,7 +68,8 @@ function mapPost(apiPost) {
     user: {
       id: String(apiPost.userId ?? "0"),
       username,
-      avatar: avatarForUsername(username),
+      avatar: apiPost.avatar || avatarForUsername(username),
+      bio: apiPost.bio || null,
     },
     image: resolvedImage,
     caption: apiPost.caption || "",
@@ -306,6 +307,20 @@ export function AppProvider({ children }) {
     });
   };
 
+  const updateBio = async (bio) => {
+    if (!token) {
+      throw new Error("Please login again.");
+    }
+
+    await apiRequest("/api/users/profile/bio", {
+      method: "PUT",
+      token,
+      body: { bio: (bio ?? "").trim() },
+    });
+
+    setUser((prev) => prev ? { ...prev, bio: (bio ?? "").trim() } : null);
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -321,6 +336,7 @@ export function AppProvider({ children }) {
       addComment,
       createPost,
       deletePost,
+      updateBio,
     }),
     [user, token, posts, commentsByPost, fetchFeed, fetchComments]
   );

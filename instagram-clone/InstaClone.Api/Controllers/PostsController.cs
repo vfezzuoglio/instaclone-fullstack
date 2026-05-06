@@ -81,6 +81,8 @@ public class PostsController : ControllerBase
                 p.CreatedAt,
                 p.UserId,
                 Username = p.User!.Username,
+                Avatar = p.User!.AvatarUrl,
+                Bio = p.User!.Bio,
 
                 LikesCount = p.Likes.Count,
                 LikedByMe = p.Likes.Any(l => l.UserId == me.Value),
@@ -99,6 +101,8 @@ public class PostsController : ControllerBase
             p.CreatedAt,
             p.UserId,
             p.Username,
+            p.Avatar,
+            p.Bio,
             p.LikesCount,
             p.LikedByMe,
             p.CommentsCount,

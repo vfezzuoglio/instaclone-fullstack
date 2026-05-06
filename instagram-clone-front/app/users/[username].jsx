@@ -66,6 +66,9 @@ export default function UserProfileScreen() {
           style={{ width: 90, height: 90, borderRadius: 45 }}
         />
         <Text style={{ fontSize: 24, fontWeight: "800" }}>{username}</Text>
+        <Text style={{ color: "#6B7280", textAlign: "center", maxWidth: 300 }}>
+          {userPosts[0]?.user?.bio || "No bio yet"}
+        </Text>
       </View>
 
       <View

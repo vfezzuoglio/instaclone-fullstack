@@ -4,9 +4,11 @@ import {
   FlatList,
   Image,
   Modal,
+  Platform,
   Pressable,
   RefreshControl,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import ScreenWrapper from "../../../components/ui/ScreenWrapper";
@@ -15,9 +17,12 @@ import { useApp } from "../../../context/AppContext";
 import { router } from "expo-router";
 
 export default function ProfileScreen() {
-  const { user, posts, logout, fetchFeed } = useApp();
+  const { user, posts, logout, fetchFeed, updateBio } = useApp();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [editingBio, setEditingBio] = useState(false);
+  const [bioText, setBioText] = useState(user?.bio ?? "");
+  const [savingBio, setSavingBio] = useState(false);
 
   const myPosts = useMemo(
     () => posts.filter((post) => post.user.username === user?.username),
@@ -56,6 +61,27 @@ export default function ProfileScreen() {
     setSelectedPost(null);
   };
 
+  const onEditBio = () => {
+    setBioText(user?.bio ?? "");
+    setEditingBio(true);
+  };
+
+  const onCancelBio = () => {
+    setEditingBio(false);
+  };
+
+  const onSaveBio = async () => {
+    setSavingBio(true);
+    try {
+      await updateBio(bioText);
+      setEditingBio(false);
+    } catch (error) {
+      Alert.alert("Bio update failed", error.message || "Please try again.");
+    } finally {
+      setSavingBio(false);
+    }
+  };
+
   if (!user) return null;
 
   const header = (
@@ -66,7 +92,73 @@ export default function ProfileScreen() {
           style={{ width: 90, height: 90, borderRadius: 45 }}
         />
         <Text style={{ fontSize: 24, fontWeight: "800" }}>{user.username}</Text>
-        <Text style={{ color: "#6B7280", textAlign: "center" }}>{user.bio}</Text>
+        
+        {editingBio ? (
+          <View style={{ width: "100%", gap: 8 }}>
+            <TextInput
+              value={bioText}
+              onChangeText={setBioText}
+              placeholder="Write your bio"
+              maxLength={150}
+              multiline
+              style={{
+                borderWidth: 1,
+                borderColor: "#D1D5DB",
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                minHeight: 60,
+              }}
+            />
+            <View style={{ flexDirection: "row", gap: 8, justifyContent: "center" }}>
+              <Pressable
+                onPress={onCancelBio}
+                disabled={savingBio}
+                style={{
+                  borderWidth: 1,
+                  borderColor: "#D1D5DB",
+                  borderRadius: 8,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ color: "#6B7280", fontWeight: "600" }}>Cancel</Text>
+              </Pressable>
+              <Pressable
+                onPress={onSaveBio}
+                disabled={savingBio}
+                style={{
+                  backgroundColor: "#111827",
+                  borderRadius: 8,
+                  paddingHorizontal: 16,
+                  paddingVertical: 8,
+                }}
+              >
+                <Text style={{ color: "white", fontWeight: "600" }}>
+                  {savingBio ? "Saving..." : "Save"}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        ) : (
+          <View style={{ alignItems: "center", gap: 8, width: "100%" }}>
+            <Text style={{ color: "#6B7280", textAlign: "center" }}>
+              {user.bio || "No bio yet"}
+            </Text>
+            <Pressable
+              onPress={onEditBio}
+              style={{
+                borderWidth: 1,
+                borderColor: "#D1D5DB",
+                borderRadius: 6,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
+            >
+              <Text style={{ fontSize: 12, fontWeight: "600", color: "#111827" }}>Edit Bio</Text>
+            </Pressable>
+          </View>
+        )}
       </View>
 
       <View
@@ -102,36 +194,43 @@ export default function ProfileScreen() {
 
   return (
     <ScreenWrapper padded={false}>
-      <FlatList
-        data={myPosts}
-        keyExtractor={(item) => item.id}
-        numColumns={4}
-        ListHeaderComponent={header}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        columnWrapperStyle={{ gap: 2 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
-            <Text style={{ color: "#6B7280" }}>You have not posted any images yet.</Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <Pressable
-            onPress={() => onOpenPost(item)}
-            style={{
-              flex: 1 / 4,
-              aspectRatio: 1,
-              marginBottom: 2,
-            }}
-          >
-            <Image
-              source={{ uri: item.image }}
-              style={{ width: "100%", height: "100%", backgroundColor: "#E5E7EB" }}
-              resizeMode="cover"
-            />
-          </Pressable>
-        )}
-      />
+      <View
+        style={Platform.OS === "web" ? {
+          flex: 1,
+          paddingHorizontal: 32,
+        } : { flex: 1 }}
+      >
+        <FlatList
+          data={myPosts}
+          keyExtractor={(item) => item.id}
+          numColumns={4}
+          ListHeaderComponent={header}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          columnWrapperStyle={{ gap: 2 }}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          ListEmptyComponent={
+            <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
+              <Text style={{ color: "#6B7280" }}>You have not posted any images yet.</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <Pressable
+              onPress={() => onOpenPost(item)}
+              style={{
+                flex: 1 / 4,
+                aspectRatio: 1,
+                marginBottom: 2,
+              }}
+            >
+              <Image
+                source={{ uri: item.image }}
+                style={{ width: "100%", height: "100%", backgroundColor: "#E5E7EB" }}
+                resizeMode="cover"
+              />
+            </Pressable>
+          )}
+        />
+      </View>
 
       <Modal
         visible={!!selectedPost}

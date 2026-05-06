@@ -12,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
 builder.Services.AddControllers();
+builder.Services.Configure<RouteOptions>(options => options.LowercaseUrls = true);
 builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
 
 // Swagger
