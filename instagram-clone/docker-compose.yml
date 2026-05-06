@@ -31,6 +31,9 @@ services:
       Firebase__ProjectId: instaclone-617e2
     ports:
       - "5042:8080"
+    volumes:
+      - uploads_data:/app/wwwroot/uploads
 
 volumes:
   mysql_data:
+  uploads_data:

@@ -47,7 +47,7 @@ public class PostsController : ControllerBase
         return Ok(new
         {
             post.Id,
-            post.ImageUrl,
+            ImageUrl = NormalizeImageUrl(post.ImageUrl),
             post.Caption,
             post.CreatedAt,
             post.UserId,
@@ -90,7 +90,22 @@ public class PostsController : ControllerBase
             })
         .ToListAsync();
 
-        return Ok(posts);
+        // Normalize image URLs after fetching from database
+        var normalizedPosts = posts.Select(p => new
+        {
+            p.Id,
+            ImageUrl = NormalizeImageUrl(p.ImageUrl),
+            p.Caption,
+            p.CreatedAt,
+            p.UserId,
+            p.Username,
+            p.LikesCount,
+            p.LikedByMe,
+            p.CommentsCount,
+            p.CanDelete
+        });
+
+        return Ok(normalizedPosts);
     }
 
     [Authorize]
@@ -118,5 +133,30 @@ public class PostsController : ControllerBase
 
         await _db.SaveChangesAsync();
         return Ok(new { deleted = true });
+    }
+
+    private string NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrEmpty(imageUrl))
+            return imageUrl ?? "";
+
+        // If it's already a file:// URL, convert to http://
+        if (Uri.TryCreate(imageUrl, UriKind.Absolute, out var uri) && uri.Scheme == "file")
+        {
+            // Extract the path from the file:// URL and convert to http
+            var path = uri.LocalPath;
+            if (!path.StartsWith("/uploads"))
+                path = $"/uploads{path}";
+            return $"http://localhost:5042{path}";
+        }
+
+        // If it's a relative path that should be on our server
+        if (!imageUrl.StartsWith("http") && !imageUrl.StartsWith("https"))
+        {
+            var normalizedPath = imageUrl.StartsWith("/") ? imageUrl : $"/{imageUrl}";
+            return $"http://localhost:5042{normalizedPath}";
+        }
+
+        return imageUrl;
     }
 }

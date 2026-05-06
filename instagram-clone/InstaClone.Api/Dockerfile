@@ -15,4 +15,6 @@ ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
 COPY --from=build /app/publish .
+RUN mkdir -p /app/wwwroot/uploads && chmod 777 /app/wwwroot/uploads
+VOLUME ["/app/wwwroot/uploads"]
 ENTRYPOINT ["dotnet", "InstaClone.Api.dll"]

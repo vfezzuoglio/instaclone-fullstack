@@ -187,3 +187,5 @@ This setup is compatible with an Azure container workflow.
 
 - Backend uses CORS policy intended for development (`AllowAnyOrigin`).
 - Rate limiting is enabled in the API for auth, read, and write endpoints.
+- Post images are uploaded through the API and stored locally in `instagram-clone/InstaClone.Api/wwwroot/uploads`.
+- The upload path is behind `IImageStorageService`, so you can swap local disk storage for cloud storage later without changing the create-post screen.

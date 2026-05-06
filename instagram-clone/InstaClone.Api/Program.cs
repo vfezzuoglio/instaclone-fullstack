@@ -1,4 +1,5 @@
 using InstaClone.Api.Data;
+using InstaClone.Api.Services.ImageStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -11,6 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers
 builder.Services.AddControllers();
+builder.Services.AddScoped<IImageStorageService, LocalImageStorageService>();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -146,6 +148,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("DevCors");
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseRateLimiter();
 app.UseAuthorization();
