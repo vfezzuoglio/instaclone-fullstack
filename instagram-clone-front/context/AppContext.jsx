@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { buildApiUrl } from "../services/api";
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
@@ -39,6 +40,28 @@ function avatarForUsername(username) {
 
 function mapPost(apiPost) {
   const username = apiPost.username || "user";
+  const resolvedImage = (() => {
+    const raw = apiPost.imageUrl || "";
+    if (!raw) return "";
+    try {
+      const parsed = new URL(raw);
+      // If the API returned a localhost URL (common in dev), replace host with the app's API host
+      if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+        const base = buildApiUrl("/");
+        try {
+          const baseUrl = new URL(base);
+          return `${baseUrl.origin}${parsed.pathname}${parsed.search}`;
+        } catch {
+          return buildApiUrl(parsed.pathname + parsed.search);
+        }
+      }
+
+      return raw;
+    } catch {
+      // Not an absolute URL, treat as relative path
+      return raw.startsWith("/") ? buildApiUrl(raw) : buildApiUrl(`/${raw}`);
+    }
+  })();
 
   return {
     id: String(apiPost.id),
@@ -47,7 +70,7 @@ function mapPost(apiPost) {
       username,
       avatar: avatarForUsername(username),
     },
-    image: apiPost.imageUrl,
+    image: resolvedImage,
     caption: apiPost.caption || "",
     likesCount: apiPost.likesCount ?? 0,
     commentsCount: apiPost.commentsCount ?? 0,
@@ -241,12 +264,12 @@ export function AppProvider({ children }) {
     );
   };
 
-  const createPost = async ({ image, caption }) => {
+  const createPost = async ({ imageUrl, caption }) => {
     const trimmedCaption = caption?.trim() ?? "";
-    const trimmedImage = image?.trim() ?? "";
+    const trimmedImage = imageUrl?.trim() ?? "";
 
     if (!trimmedImage) {
-      throw new Error("Please add an image URL.");
+      throw new Error("Please add an image.");
     }
 
     if (!token || !user) {
@@ -286,6 +309,7 @@ export function AppProvider({ children }) {
   const value = useMemo(
     () => ({
       user,
+      token,
       posts,
       commentsByPost,
       fetchFeed,
@@ -298,7 +322,7 @@ export function AppProvider({ children }) {
       createPost,
       deletePost,
     }),
-    [user, posts, commentsByPost, fetchFeed, fetchComments]
+    [user, token, posts, commentsByPost, fetchFeed, fetchComments]
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

@@ -82,3 +82,51 @@ export async function apiRequest(path, { method = "GET", token, body } = {}) {
 
   return payload;
 }
+
+export async function uploadImage(imageAsset, { token } = {}) {
+  if (!imageAsset?.uri) {
+    throw new Error("Please select an image.");
+  }
+
+  const formData = new FormData();
+  const fileName = imageAsset.fileName || imageAsset.uri.split("/").pop() || "upload.jpg";
+  const mimeType = imageAsset.mimeType || "image/jpeg";
+
+  if (Platform.OS === "web" && imageAsset.file) {
+    formData.append("image", imageAsset.file, fileName);
+  } else {
+    formData.append("image", {
+      uri: imageAsset.uri,
+      name: fileName,
+      type: mimeType,
+    });
+  }
+
+  const headers = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(buildApiUrl("/api/uploads/images"), {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  const rawText = await response.text();
+  let payload = null;
+
+  if (rawText) {
+    try {
+      payload = JSON.parse(rawText);
+    } catch {
+      payload = rawText;
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(cleanErrorMessage(payload));
+  }
+
+  return payload;
+}

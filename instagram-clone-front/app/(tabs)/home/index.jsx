@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, FlatList, RefreshControl } from "react-native";
+import { Alert, FlatList, Platform, RefreshControl } from "react-native";
 import { router } from "expo-router";
 import ScreenWrapper from "../../../components/ui/ScreenWrapper";
 import PostCard from "../../../components/post/PostCard";
@@ -61,6 +61,24 @@ export default function HomeScreen() {
   }, [addComment]);
 
   const onDeletePost = useCallback((postId) => {
+    const performDelete = async () => {
+      try {
+        await deletePost(postId);
+      } catch (error) {
+        Alert.alert("Delete failed", error.message || "Please try again.");
+      }
+    };
+
+    if (Platform.OS === "web") {
+      const confirmed = typeof window !== "undefined"
+        ? window.confirm("Are you sure you want to delete this post?")
+        : true;
+      if (confirmed) {
+        void performDelete();
+      }
+      return;
+    }
+
     Alert.alert("Delete post", "Are you sure you want to delete this post?", [
       {
         text: "Cancel",
@@ -69,12 +87,8 @@ export default function HomeScreen() {
       {
         text: "Delete",
         style: "destructive",
-        onPress: async () => {
-          try {
-            await deletePost(postId);
-          } catch (error) {
-            Alert.alert("Delete failed", error.message || "Please try again.");
-          }
+        onPress: () => {
+          void performDelete();
         },
       },
     ]);

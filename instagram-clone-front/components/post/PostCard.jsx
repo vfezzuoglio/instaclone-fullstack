@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Image, Pressable, Text, TextInput, View } from "react-native";
+import { Platform, Image as RNImage, Pressable, Text, TextInput, View } from "react-native";
 
 export default function PostCard({
   post,
@@ -54,7 +54,7 @@ export default function PostCard({
           onPress={() => onPressUser?.(post.user.username, post.canDelete)}
           style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
         >
-          <Image
+          <RNImage
             source={{ uri: post.user.avatar }}
             style={{ width: 38, height: 38, borderRadius: 19 }}
           />
@@ -72,6 +72,7 @@ export default function PostCard({
               borderRadius: 999,
               paddingHorizontal: 12,
               paddingVertical: 6,
+              cursor: Platform.OS === "web" ? "pointer" : undefined,
             }}
           >
             <Text style={{ color: "#B91C1C", fontWeight: "700" }}>Delete</Text>
@@ -79,11 +80,26 @@ export default function PostCard({
         ) : null}
       </View>
 
-      <Image
-        source={{ uri: post.image }}
-        style={{ width: "100%", height: 320, backgroundColor: "#F3F4F6" }}
-        resizeMode="contain"
-      />
+      {Platform.OS === "web" ? (
+        <img
+          src={post.image}
+          alt={post.caption || post.user.username}
+          style={{
+            display: "block",
+            width: "100%",
+            height: 320,
+            objectFit: "contain",
+            objectPosition: "center",
+            backgroundColor: "#F9FAFB",
+          }}
+        />
+      ) : (
+        <RNImage
+          source={{ uri: post.image }}
+          style={{ width: "100%", height: 320, backgroundColor: "#F9FAFB" }}
+          resizeMode="cover"
+        />
+      )}
 
       <View style={{ padding: 12, gap: 10 }}>
         {!!post.caption && <Text style={{ fontSize: 15 }}>{post.caption}</Text>}
